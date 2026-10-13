@@ -10,40 +10,8 @@ header i{color:#ffe500;font-size:13px;font-weight:400;margin-left:6px}
 header small{float:right;font-size:11px;font-weight:400;opacity:.85;margin-top:6px}
 main{max-width:480px;margin:auto;padding:12px}
 #banner{display:none;background:#fdecea;color:#b71c1c;border-left:4px solid #d32f2f;border-radius:4px;padding:10px 12px;margin-bottom:12px;font-size:13px;word-break:break-word}
-.steps{display:flex;justify-content:space-between;background:#fff;border-radius:4px;padding:10px 6px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.12)}
-.st{flex:1;text-align:center;font-size:12px;color:#878787}
-.st .n{width:26px;height:26px;border-radius:50%;background:#e0e0e0;color:#fff;margin:0 auto 4px;line-height:26px;font-size:14px;font-weight:600}
-.st.act{color:#2874f0;font-weight:600}.st.act .n{background:#2874f0}
-.st.done{color:#388e3c}.st.done .n{background:#388e3c}
-.card{background:#fff;border-radius:4px;padding:12px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.12);border-left:4px solid #e0e0e0}
-.card.act{border-left-color:#2874f0}
-.card.ok{border-left-color:#388e3c}
-.ct{font-size:13px;font-weight:600;color:#2874f0;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
-.cs{font-size:12px;color:#878787;margin-bottom:8px}
-input{width:100%;font-size:18px;padding:10px;border:1px solid #c2c2c2;border-radius:2px;outline:none}
-input:focus{border-color:#2874f0;box-shadow:0 0 0 2px rgba(40,116,240,.2)}
-button{border:0;border-radius:2px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;width:100%;margin-top:6px}
-.pri{background:#2874f0;color:#fff}
-.sec{background:#fff;color:#2874f0;border:1px solid #2874f0}
-.locked{font-size:20px;font-weight:600;color:#388e3c}
-.sum{display:flex;gap:8px;margin-bottom:12px}
-.sum div{flex:1;background:#e8f0fe;border-radius:4px;padding:8px 10px;font-size:12px;color:#555;word-break:break-all}
-.sum b{display:block;font-size:17px;color:#2874f0}
-.seg{display:flex;gap:8px;margin-top:12px}
-.seg button{margin:0;background:#fff;color:#2874f0;border:1px solid #2874f0;font-size:13px}
-.seg button.on{background:#2874f0;color:#fff}
-.seg button.d{color:#d32f2f;border-color:#d32f2f}
-.seg button.d.on{background:#d32f2f;color:#fff}
-.item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eee;font-size:15px;word-break:break-all}
-.item span{background:#e8f0fe;color:#2874f0;border-radius:10px;padding:2px 10px;margin-right:8px;font-size:13px}
-.item a{color:#d32f2f;font-size:20px;cursor:pointer;padding:0 4px}
-.h{padding:6px 0;border-bottom:1px solid #eee;font-size:13px;word-break:break-word}
-.h.err{color:#d32f2f}
-.empty{color:#878787;font-size:13px;padding:8px 0}
-</style></head><body>
-<header>Tote Logger<i>Explore Plus</i><small id="ver">checking…</small></header>
-<main>
-<div id="banner"></div>
+#dbg{background:#fff8e1;border-left:4px solid #ffc107;border-radius:4px;padding:8px 12px;margin-bottom:12px;font-size:13px;word-break:break-all}
+<div id="dbg">Last scan: —</div>
 <div class="steps">
   <div class="st" id="st1"><div class="n">1</div>Tote</div>
   <div class="st" id="st2"><div class="n">2</div>Location</div>
@@ -62,7 +30,7 @@ button{border:0;border-radius:2px;padding:12px;font-size:15px;font-weight:600;cu
     <div class="cs">Scan the bin / shelf label where this tote is placed</div>
     <input id="locIn" placeholder="Location ID" autocomplete="off">
   </div>
-  <button class="pri" onclick="start()" style="margin-bottom:12px">NEXT · SCAN WIDs</button>
+  <button class="pri" onclick="commit()" style="margin-bottom:12px">NEXT</button>
   <div class="card"><div class="ct">Recent · Pending <b id="pend">0</b></div><div id="hist"><div class="empty">No submissions yet</div></div></div>
 </div>
 
@@ -73,7 +41,7 @@ button{border:0;border-radius:2px;padding:12px;font-size:15px;font-weight:600;cu
   </div>
   <div class="card act">
     <div class="ct">Step 3 · Scan WIDs <span id="cnt" style="float:right;text-transform:none">0 scanned</span></div>
-    <div class="cs">Scan each WID, then Enter or tap ADD</div>
+    <div class="cs">Keep scanning WIDs one after another</div>
     <input id="wid" placeholder="WID" autocomplete="off">
     <button class="sec" onclick="addWid()">ADD</button>
     <div id="list" style="margin-top:8px"></div>
@@ -86,33 +54,28 @@ button{border:0;border-radius:2px;padding:12px;font-size:15px;font-weight:600;cu
   </div>
 </div>
 </main>
-<script>h
-const API='https://script.google.com/macros/s/AKfycbz__gYSYfw3xDzS335Ywwk_oiVG8mHw-vztsixlUN-J_diLDd5rOBiIdj3nPFfTkppPrA/exec';
-const GAS=(typeof google!=='undefined')&&google.script&&google.script.run;   // true when served by Apps Script
+<script>
+const API='https://script.google.com/macros/s/AKfycbykdNT3mWYI1-AvczL6mlkTFCUXQR6wEgmyK7-ml6itAOo0dJ06AHysfqLV08qAZR3vTA/exec';
+const GAS=(typeof google!=='undefined')&&google.script&&google.script.run;
 
 const $=id=>document.getElementById(id);
-let tote=null,loc=null,items=[],mode='same',q=[],busy=false;
+let tote=null,loc=null,items=[],mode='same',q=[],busy=false,stage='tote';
 
 function banner(m){const b=$('banner');b.style.display=m?'block':'none';b.textContent=m||'';}
-const HINT='Backend returned a web page, not data. In Apps Script: Deploy → Manage deployments → pencil → New version, and Who has access = Anyone.';
-
+function dbg(m){$('dbg').textContent='Last scan: '+m;}
+const HINT='Backend returned a web page, not data. In Apps Script: Deploy → Manage deployments → pencil → New version, access = Anyone.';
 function parse(t){try{return JSON.parse(t);}catch(e){throw new Error(HINT);}}
 
 function ping(){
-  if(GAS){
-    google.script.run.withSuccessHandler(v=>{$('ver').textContent=v;banner('');})
-      .withFailureHandler(e=>banner('Setup error: '+(e.message||e))).ping();
-    return;
-  }
+  if(GAS){google.script.run.withSuccessHandler(v=>{$('ver').textContent=v;banner('');})
+    .withFailureHandler(e=>banner('Setup error: '+(e.message||e))).ping();return;}
   fetch(API+'?api=1').then(r=>r.text()).then(parse)
     .then(r=>{if(r.ok){$('ver').textContent=r.version;banner('');}else banner('Backend error: '+r.error);})
-    .catch(e=>banner('Cannot reach backend: '+e.message+' — check API URL and access = Anyone, then deploy a New version.'));
+    .catch(e=>banner('Cannot reach backend: '+e.message));
 }
-
 function send(p){
-  if(GAS)return new Promise((res,rej)=>{
-    google.script.run.withSuccessHandler(res).withFailureHandler(e=>rej(new Error(e.message||e)))
-      .logBatch(p.tote,p.loc,p.items,p.detach);});
+  if(GAS)return new Promise((res,rej)=>{google.script.run.withSuccessHandler(res)
+    .withFailureHandler(e=>rej(new Error(e.message||e))).logBatch(p.tote,p.loc,p.items,p.detach);});
   return fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)})
     .then(r=>r.text()).then(parse);
 }
@@ -125,31 +88,43 @@ function stepper(n){
   $('c2').className='card'+(n===2?' act':'');
 }
 function view(v){$('vSetup').style.display=v==='s'?'block':'none';$('vScan').style.display=v==='c'?'block':'none';}
+function target(){return stage==='tote'?$('toteIn'):stage==='loc'?$('locIn'):$('wid');}
+function focusT(){setTimeout(()=>{const t=target();t.focus();},60);}
 
 function showSetup(){
   view('s');
   $('toteIn').style.display=tote?'none':'block';
   $('toteLock').style.display=tote?'block':'none';
   $('toteLock').textContent=tote?'✓ '+tote+' (same tote)':'';
-  $('locIn').value='';
-  stepper(tote?2:1);
-  (tote?$('locIn'):$('toteIn')).focus();
+  $('toteIn').value='';$('locIn').value='';
+  stage=tote?'loc':'tote';
+  stepper(tote?2:1);focusT();
 }
-function start(){
-  const t=tote||$('toteIn').value.trim(), l=$('locIn').value.trim();
-  if(!t){stepper(1);$('toteIn').focus();return;}
-  if(!l){stepper(2);$('locIn').focus();return;}
-  tote=t;loc=l;items=[];$('toteIn').value='';
-  $('sTote').textContent=tote;$('sLoc').textContent=loc;
-  render();view('c');stepper(3);$('wid').focus();
+
+function commit(){                                   // one scan finished → route by stage
+  clearTimeout(idle);burst=false;last=0;
+  if(stage==='tote'){
+    const v=$('toteIn').value.trim();if(!v)return;
+    dbg('Tote → '+v);stage='loc';stepper(2);focusT();
+  }else if(stage==='loc'){
+    const t=tote||$('toteIn').value.trim(),l=$('locIn').value.trim();
+    if(!t){stage='tote';stepper(1);focusT();return;}
+    if(!l)return;
+    dbg('Location → '+l);
+    tote=t;loc=l;items=[];
+    $('sTote').textContent=tote;$('sLoc').textContent=loc;
+    render();view('c');stage='wid';stepper(3);focusT();
+  }else addWid();
 }
+
 function addWid(){
-  const w=$('wid').value.trim();if(!w){$('wid').focus();return;}
+  const w=$('wid').value.trim();if(!w){focusT();return;}
   const it=items.find(x=>x.w===w);
-  if(it){it.q++;items=[it].concat(items.filter(x=>x!==it));}else items.unshift({w:w,q:1});
-  $('wid').value='';render();$('wid').focus();
+  if(it){it.q++;items=[it].concat(items.filter(x=>x!==it));dbg('WID → '+w+' (qty '+it.q+')');}
+  else{items.unshift({w:w,q:1});dbg('WID → '+w);}
+  $('wid').value='';render();focusT();
 }
-function rm(w){items=items.filter(x=>x.w!==w);render();$('wid').focus();}
+function rm(w){items=items.filter(x=>x.w!==w);render();focusT();}
 function render(){
   const L=$('list');L.innerHTML='';
   if(!items.length)L.innerHTML='<div class="empty">No WIDs scanned yet</div>';
@@ -165,11 +140,11 @@ function render(){
 }
 function setMode(m){mode=m;
   $('bSame').classList.toggle('on',m==='same');
-  $('bDet').classList.toggle('on',m==='detach');}
-function cancelB(){items=[];tote=null;loc=null;setMode('same');showSetup();}
+  $('bDet').classList.toggle('on',m==='detach');focusT();}
+function cancelB(){items=[];tote=null;loc=null;mode='same';setMode('same');showSetup();}
 function submitB(){
   if($('wid').value.trim())addWid();
-  if(!items.length){banner('Scan at least one WID');$('wid').focus();return;}
+  if(!items.length){banner('Scan at least one WID');focusT();return;}
   banner('');
   const detach=mode==='detach',total=items.reduce((a,b)=>a+b.q,0);
   const row=document.createElement('div');row.className='h';
@@ -177,8 +152,8 @@ function submitB(){
   const H=$('hist');if(H.querySelector('.empty'))H.innerHTML='';H.prepend(row);
   q.push({t:tote,l:loc,items:items,d:detach,row:row,total:total,tries:0});
   items=[];if(detach)tote=null;
-  setMode('same');loc=null;
-  showSetup();upd();run();
+  mode='same';$('bSame').classList.add('on');$('bDet').classList.remove('on');
+  loc=null;showSetup();upd();run();
 }
 function upd(){$('pend').textContent=q.length;}
 function fail(b,msg){
@@ -196,20 +171,22 @@ function run(){
       else fail(b,(r&&r.error)||'Bad response');})
     .catch(e=>fail(b,e.message||String(e)));
 }
-function onScan(el,fn){
-  el.addEventListener('keydown',e=>{
-    if(e.key==='Enter'||e.key==='Tab'||e.keyCode===13||e.keyCode===9){e.preventDefault();fn();}
-  });
-  let last=0,burst=false,t;                      // scanner with no suffix: fast burst of chars, then pause
-  el.addEventListener('input',()=>{
-    const n=Date.now(); if(last&&n-last<50)burst=true; last=n;
-    clearTimeout(t);
-    t=setTimeout(()=>{ if(burst&&el.value.trim().length>=3)fn(); burst=false; },200);
-  });
-}
-onScan($('toteIn'),()=>{if($('toteIn').value.trim()){stepper(2);$('locIn').focus();}});
-onScan($('locIn'),start);
-onScan($('wid'),addWid);
+
+/* ---- page-wide scanner capture: works with Enter, Tab, or no suffix, even if focus is lost ---- */
+let last=0,burst=false,idle;
+document.addEventListener('keydown',e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  const k=e.key,kc=e.keyCode;
+  if(k==='Enter'||k==='Tab'||kc===13||kc===9){e.preventDefault();commit();return;}
+  if(k&&k.length===1){
+    const t=target();
+    if(document.activeElement!==t){e.preventDefault();t.focus();t.value+=k;}
+    const n=Date.now();if(last&&n-last<50)burst=true;last=n;
+    clearTimeout(idle);
+    idle=setTimeout(()=>{if(burst&&target().value.trim().length>=3)commit();burst=false;last=0;},150);
+  }
+},true);
+
 window.onbeforeunload=()=>q.length?'Pending':undefined;
 showSetup();ping();
 </script></body></html>
