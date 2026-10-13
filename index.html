@@ -196,9 +196,20 @@ function run(){
       else fail(b,(r&&r.error)||'Bad response');})
     .catch(e=>fail(b,e.message||String(e)));
 }
-$('toteIn').addEventListener('keydown',e=>{if(e.key==='Enter'&&$('toteIn').value.trim()){e.preventDefault();stepper(2);$('locIn').focus();}});
-$('locIn').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();start();}});
-$('wid').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addWid();}});
+function onScan(el,fn){
+  el.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key==='Tab'||e.keyCode===13||e.keyCode===9){e.preventDefault();fn();}
+  });
+  let last=0,burst=false,t;                      // scanner with no suffix: fast burst of chars, then pause
+  el.addEventListener('input',()=>{
+    const n=Date.now(); if(last&&n-last<50)burst=true; last=n;
+    clearTimeout(t);
+    t=setTimeout(()=>{ if(burst&&el.value.trim().length>=3)fn(); burst=false; },200);
+  });
+}
+onScan($('toteIn'),()=>{if($('toteIn').value.trim()){stepper(2);$('locIn').focus();}});
+onScan($('locIn'),start);
+onScan($('wid'),addWid);
 window.onbeforeunload=()=>q.length?'Pending':undefined;
 showSetup();ping();
 </script></body></html>
