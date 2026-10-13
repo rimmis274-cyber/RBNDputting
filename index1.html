@@ -7,7 +7,7 @@
 body{margin:0;font-family:Roboto,Arial,sans-serif;background:#f1f3f6;color:#212121}
 header{background:#2874f0;color:#fff;padding:14px 16px;font-size:20px;font-weight:600;position:sticky;top:0;z-index:5;box-shadow:0 2px 4px rgba(0,0,0,.2)}
 header i{color:#ffe500;font-size:13px;font-weight:400;margin-left:6px}
-header small{float:right;font-size:11px;font-weight:400;opacity:.8;margin-top:6px}
+header small{float:right;font-size:11px;font-weight:400;opacity:.85;margin-top:6px}
 main{max-width:480px;margin:auto;padding:12px}
 #banner{display:none;background:#fdecea;color:#b71c1c;border-left:4px solid #d32f2f;border-radius:4px;padding:10px 12px;margin-bottom:12px;font-size:13px;word-break:break-word}
 .steps{display:flex;justify-content:space-between;background:#fff;border-radius:4px;padding:10px 6px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.12)}
@@ -22,9 +22,38 @@ main{max-width:480px;margin:auto;padding:12px}
 .cs{font-size:12px;color:#878787;margin-bottom:8px}
 input{width:100%;font-size:18px;padding:10px;border:1px solid #c2c2c2;border-radius:2px;outline:none}
 input:focus{border-color:#2874f0;box-shadow:0 0 0 2px rgba(40,116,240,.2)}
-button{border:0;border-radius:2px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;width:100%;margin-top:4px}
+button{border:0;border-radius:2px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;width:100%;margin-top:6px}
 .pri{background:#2874f0;color:#fff}
 .sec{background:#fff;color:#2874f0;border:1px solid #2874f0}
+.locked{font-size:20px;font-weight:600;color:#388e3c}
+.sum{display:flex;gap:8px;margin-bottom:12px}
+.sum div{flex:1;background:#e8f0fe;border-radius:4px;padding:8px 10px;font-size:12px;color:#555;word-break:break-all}
+.sum b{display:block;font-size:17px;color:#2874f0}
+.seg{display:flex;gap:8px;margin-top:12px}
+.seg button{margin:0;background:#fff;color:#2874f0;border:1px solid #2874f0;font-size:13px}
+.seg button.on{background:#2874f0;color:#fff}
+.seg button.d{color:#d32f2f;border-color:#d32f2f}
+.seg button.d.on{background:#d32f2f;color:#fff}
+.item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eee;font-size:15px;word-break:break-all}
+.item span{background:#e8f0fe;color:#2874f0;border-radius:10px;padding:2px 10px;margin-right:8px;font-size:13px}
+.item a{color:#d32f2f;font-size:20px;cursor:pointer;padding:0 4px}
+.h{padding:6px 0;border-bottom:1px solid #eee;font-size:13px;word-break:break-word}
+.h.err{color:#d32f2f}
+.empty{color:#878787;font-size:13px;padding:8px 0}
+</style></head><body>
+<header>Tote Logger<i>Explore Plus</i><small id="ver">checking…</small></header>
+<main>
+<div id="banner"></div>
+<div class="steps">
+  <div class="st" id="st1"><div class="n">1</div>Tote</div>
+  <div class="st" id="st2"><div class="n">2</div>Location</div>
+  <div class="st" id="st3"><div class="n">3</div>WIDs</div>
+</div>
+
+<div id="vSetup">
+  <div class="card" id="c1">
+    <div class="ct">Step 1 · Scan tote</div>
+    <div class="cs">Scan the tote ID label</div>
     <input id="toteIn" placeholder="Tote ID" autocomplete="off">
     <div id="toteLock" class="locked" style="display:none"></div>
   </div>
@@ -44,7 +73,7 @@ button{border:0;border-radius:2px;padding:12px;font-size:15px;font-weight:600;cu
   </div>
   <div class="card act">
     <div class="ct">Step 3 · Scan WIDs <span id="cnt" style="float:right;text-transform:none">0 scanned</span></div>
-    <div class="cs">Scan each WID, press Enter or tap ADD</div>
+    <div class="cs">Scan each WID, then Enter or tap ADD</div>
     <input id="wid" placeholder="WID" autocomplete="off">
     <button class="sec" onclick="addWid()">ADD</button>
     <div id="list" style="margin-top:8px"></div>
@@ -58,16 +87,35 @@ button{border:0;border-radius:2px;padding:12px;font-size:15px;font-weight:600;cu
 </div>
 </main>
 <script>
-const API='https://script.google.com/macros/s/AKfycbwTP4BzJfUWbh49aPiyEU7-uI_w7rTxEzTK_28zkaPoy1rbB3eFIhd0hu5xfQ74tH09_Q/exec';
+const API='https://script.google.com/macros/s/AKfycbykdNT3mWYI1-AvczL6mlkTFCUXQR6wEgmyK7-ml6itAOo0dJ06AHysfqLV08qAZR3vTA/exec';
+const GAS=(typeof google!=='undefined')&&google.script&&google.script.run;   // true when served by Apps Script
 
 const $=id=>document.getElementById(id);
 let tote=null,loc=null,items=[],mode='same',q=[],busy=false;
 
 function banner(m){const b=$('banner');b.style.display=m?'block':'none';b.textContent=m||'';}
+const HINT='Backend returned a web page, not data. In Apps Script: Deploy → Manage deployments → pencil → New version, and Who has access = Anyone.';
 
-fetch(API).then(r=>r.json())
-  .then(r=>{if(r.ok){$('ver').textContent=r.version;banner('');}else banner('Backend error: '+r.error);})
-  .catch(()=>banner('Cannot reach backend. Check API URL, and deploy access = Anyone.'));
+function parse(t){try{return JSON.parse(t);}catch(e){throw new Error(HINT);}}
+
+function ping(){
+  if(GAS){
+    google.script.run.withSuccessHandler(v=>{$('ver').textContent=v;banner('');})
+      .withFailureHandler(e=>banner('Setup error: '+(e.message||e))).ping();
+    return;
+  }
+  fetch(API+'?api=1').then(r=>r.text()).then(parse)
+    .then(r=>{if(r.ok){$('ver').textContent=r.version;banner('');}else banner('Backend error: '+r.error);})
+    .catch(e=>banner('Cannot reach backend: '+e.message+' — check API URL and access = Anyone, then deploy a New version.'));
+}
+
+function send(p){
+  if(GAS)return new Promise((res,rej)=>{
+    google.script.run.withSuccessHandler(res).withFailureHandler(e=>rej(new Error(e.message||e)))
+      .logBatch(p.tote,p.loc,p.items,p.detach);});
+  return fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)})
+    .then(r=>r.text()).then(parse);
+}
 
 function stepper(n){
   for(let i=1;i<=3;i++){const e=$('st'+i);
@@ -123,7 +171,6 @@ function submitB(){
   if($('wid').value.trim())addWid();
   if(!items.length){banner('Scan at least one WID');$('wid').focus();return;}
   banner('');
-
   const detach=mode==='detach',total=items.reduce((a,b)=>a+b.q,0);
   const row=document.createElement('div');row.className='h';
   row.textContent='… '+tote+' @ '+loc+' · '+total+' WIDs';
@@ -142,18 +189,16 @@ function fail(b,msg){
 }
 function run(){
   if(busy||!q.length)return;busy=true;const b=q[0];
-  fetch(API,{method:'POST',body:JSON.stringify({tote:b.t,loc:b.l,items:b.items,detach:b.d})})
-    .then(r=>r.json())
+  send({tote:b.t,loc:b.l,items:b.items,detach:b.d})
     .then(r=>{
       if(r&&r.ok){q.shift();busy=false;b.row.className='h';
         b.row.textContent='✓ '+b.t+' @ '+b.l+' · '+b.total+' WIDs'+(b.d?' · detached':'');upd();run();}
       else fail(b,(r&&r.error)||'Bad response');})
-    .catch(e=>fail(b,'Network/CORS: '+e.message));
+    .catch(e=>fail(b,e.message||String(e)));
 }
-$('toteIn').addEventListener('keydown',e=>{if(e.key==='Enter'&&$('toteIn').value.trim()){stepper(2);$('locIn').focus();}});
-$('locIn').addEventListener('keydown',e=>{if(e.key==='Enter')start();});
+$('toteIn').addEventListener('keydown',e=>{if(e.key==='Enter'&&$('toteIn').value.trim()){e.preventDefault();stepper(2);$('locIn').focus();}});
+$('locIn').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();start();}});
 $('wid').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addWid();}});
 window.onbeforeunload=()=>q.length?'Pending':undefined;
-showSetup();
+showSetup();ping();
 </script></body></html>
-
